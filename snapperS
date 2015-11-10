@@ -1,0 +1,55 @@
+#!/usr/bin/python
+
+from subprocess import check_output as run
+import os
+import argparse
+
+def mountSnapshotRW(path, enableWrite):
+    run("btrfs property set -ts " + path + " ro " + str(not enableWrite).lower(), shell=True)
+
+
+def delete(args):
+    if not os.geteuid() == 0:
+        print "You must run this script as root"
+        exit(1)
+
+    if "/" not in args['filename']:
+        print "Specify the absolute path of the file starting with a /"
+        exit(2)
+
+    for snapshot in os.listdir('/.snapshots/'):
+        mountSnapshotRW("/.snapshots/" + snapshot + "/snapshot/", True)
+        try:
+            run("rm /.snapshots/" + snapshot + "/snapshot" + args['filename'], shell=True)
+            print "Deleted from /.snapshots/" + snapshot
+        except:
+            pass
+        mountSnapshotRW("/.snapshots/" + snapshot + "/snapshot/", False)
+
+    mountSnapshotRW("/", True)
+
+def cat(args):
+    print run("cat /.snapshots/" + args['snapshot'] + "/snapshot" + args['filename'], shell=True)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='snapperS: A variety of supplemental snapper subcommands')
+    subparsers = parser.add_subparsers(
+        title='subcommands', description='Different Subcommands',
+        help='additional help')
+
+    parser_add = subparsers.add_parser('cat')
+    parser_add.set_defaults(which='cat')
+    parser_add.add_argument('-f', '--filename', required=True, help='The file to cat')
+    parser_add.add_argument('-s', '--snapshot', required=True, help='The snapshot to view')
+
+    parser_delete = subparsers.add_parser('delete')
+    parser_delete.set_defaults(which='delete')
+    parser_delete.add_argument('-f', '--filename', help='Delete a file from all past snapshots. ')
+
+    args = vars(parser.parse_args())
+
+    if args['which'] == 'delete':
+        delete(args)
+    if args['which'] == 'cat':
+        cat(args)
+
