@@ -28,10 +28,14 @@ optional arguments:
 ```
 
 ```
-usage: snapperS delete [-h] [-f FILENAME]
+usage: snapperS delete [-h] -f FILENAME [-r RANGE]
 
 optional arguments:
   -h, --help            show this help message and exit
   -f FILENAME, --filename FILENAME
+                        Delete a file from all past snapshots.
+  -r RANGE, --range RANGE
+                        The range of snapshots to delete the file from in the
+                        form of startPoint..endPoint (e.g. 2..5)
                         Delete a file from all past snapshots.
 ```

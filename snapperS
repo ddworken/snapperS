@@ -1,34 +1,42 @@
 #!/usr/bin/python
 
-from subprocess import check_output as run
-import os
-import argparse
+from subprocess import check_output as run #used to run command to interface with btrfs
+import os #used to check for root and listdir
+import argparse #used for argument parsing
 
-def mountSnapshotRW(path, enableWrite):
+def mountSnapshotRW(path, enableWrite): #set the snapshot at path to rw or ro
     run("btrfs property set -ts " + path + " ro " + str(not enableWrite).lower(), shell=True)
 
 
-def delete(args):
-    if not os.geteuid() == 0:
+def delete(args): #delete functionality
+    if not os.geteuid() == 0: #must be root in order to delete files
         print "You must run this script as root"
         exit(1)
 
-    if "/" not in args['filename']:
+    if args['range'] is not None: #if they specified a range argument
+        startPoint = int(args['range'].split('..')[0])
+        endPoint = int(args['range'].split('..')[1])
+
+    if "/" not in args['filename']: #if the user tried to specify a relative path, warn them
         print "Specify the absolute path of the file starting with a /"
         exit(2)
 
-    for snapshot in os.listdir('/.snapshots/'):
-        mountSnapshotRW("/.snapshots/" + snapshot + "/snapshot/", True)
+    for snapshot in os.listdir('/.snapshots/'): # /.snapshots/ contains all of snapper's snapshots
+        if args['range'] is not None: #only limit the start/end points if they user specified them
+            if not (startPoint <= int(snapshot) <= endPoint):
+                continue
+                break #break if outside of the user specified range
+        mountSnapshotRW("/.snapshots/" + snapshot + "/snapshot/", True) #path to the actual snapshot is /.snapshots/[num]/snapshot/
         try:
             run("rm /.snapshots/" + snapshot + "/snapshot" + args['filename'], shell=True)
             print "Deleted from /.snapshots/" + snapshot
         except:
             pass
-        mountSnapshotRW("/.snapshots/" + snapshot + "/snapshot/", False)
+        mountSnapshotRW("/.snapshots/" + snapshot + "/snapshot/", False) #set it back to ro once we are done
 
     mountSnapshotRW("/", True)
 
-def cat(args):
+def cat(args): #cat functionality
     print run("cat /.snapshots/" + args['snapshot'] + "/snapshot" + args['filename'], shell=True)
 
 if __name__ == '__main__':
@@ -44,7 +52,8 @@ if __name__ == '__main__':
 
     parser_delete = subparsers.add_parser('delete')
     parser_delete.set_defaults(which='delete')
-    parser_delete.add_argument('-f', '--filename', help='Delete a file from all past snapshots. ')
+    parser_delete.add_argument('-f', '--filename', required=True, help='Delete a file from all past snapshots. ')
+    parser_delete.add_argument('-r', '--range', help="The range of snapshots to delete the file from in the form of startPoint..endPoint (e.g. 2..5)")
 
     args = vars(parser.parse_args())
 
