@@ -11,9 +11,10 @@ optional arguments:
   -h, --help    show this help message and exit
 
 subcommands:
-  Different Subcommands
+  cat to run cat on a file from a specific snapshot. 
+  delete to delete files from either all snapshots or a range of snapshots. 
 
-  {cat,delete}  additional help
+  {cat,delete}
 ```
 
 ```

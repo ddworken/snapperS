@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from argparse import RawTextHelpFormatter
+
 from subprocess import check_output as run #used to run command to interface with btrfs
 import os #used to check for root and listdir
 import argparse #used for argument parsing
@@ -40,10 +42,9 @@ def cat(args): #cat functionality
     print run("cat /.snapshots/" + args['snapshot'] + "/snapshot" + args['filename'], shell=True)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='snapperS: A variety of supplemental snapper subcommands')
+    parser = argparse.ArgumentParser(description='snapperS: A variety of supplemental snapper subcommands', formatter_class=RawTextHelpFormatter)
     subparsers = parser.add_subparsers(
-        title='subcommands', description='Different Subcommands',
-        help='additional help')
+        title='subcommands', description='cat to run cat on a file from a specific snapshot. \ndelete to delete files from either all snapshots or a range of snapshots. ')
 
     parser_add = subparsers.add_parser('cat')
     parser_add.set_defaults(which='cat')
