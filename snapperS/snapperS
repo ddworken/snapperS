@@ -35,7 +35,7 @@ def delete(args): #delete functionality
         try:
             with open(os.devnull, 'w') as devnull: #used so we don't have to write stderr to output
                 run("rm " + args['directory'] + snapshot + "/snapshot" + args['filename'], shell=True, stderr=devnull) 
-            print "Deleted from /.snapshots/" + snapshot
+            print "Deleted from " + args['directory'] + snapshot
         except CalledProcessError as e:
             if "1" in str(e): #an exit code 1 means the file doesn't exist
                 print "Did not find file in " + args['directory'] + snapshot + "/snapshot/. Skipping. "
