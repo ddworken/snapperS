@@ -4,6 +4,9 @@ snapperS
 
 .. image:: https://badge.fury.io/py/snapperS.svg
     :target: https://badge.fury.io/py/snapperS
+
+.. image:: https://travis-ci.org/ddworken/snapperS.svg?branch=master
+    :target: https://travis-ci.org/ddworken/snapperS
     
 A set of subcommands to supplement snapper usage. Tested only on Ubuntu 15.10 (bug reports welcome!). 
 

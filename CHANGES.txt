@@ -4,3 +4,4 @@ v0.1.2, 11/12/15 -- Added better error handling.
 v0.1.3, 11/12/15 -- Fixed bug with hardcoded /.snapshots/. 
 v0.1.4, 11/12/15 -- Added --recursive to delete directories. 
 v0.1.5, 11/12/15 -- Added --verbose flag. 
+v0.2.0, 11/12/15 -- Added badges. 
