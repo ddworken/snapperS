@@ -35,10 +35,12 @@ Subcommands
       -s SNAPSHOT, --snapshot SNAPSHOT
                             The snapshot to view
 
+
+
 ::
 
-    usage: snapperS delete [-h] -f FILENAME [-r RANGE]
-
+    usage: snapperS delete [-h] -f FILENAME [-r RANGE] [--recursive]
+    
     optional arguments:
       -h, --help            show this help message and exit
       -f FILENAME, --filename FILENAME
@@ -46,8 +48,8 @@ Subcommands
       -r RANGE, --range RANGE
                             The range of snapshots to delete the file from in the
                             form of startPoint..endPoint (e.g. 2..5)
-                            Delete a file from all past snapshots.
-
+      --recursive           Delete recursively (i.e. a folder)
+    
 
 Installation
 -------------

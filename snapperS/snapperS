@@ -34,11 +34,15 @@ def delete(args): #delete functionality
             exit(3)
         try:
             with open(os.devnull, 'w') as devnull: #used so we don't have to write stderr to output
-                run("rm " + args['directory'] + snapshot + "/snapshot" + args['filename'], shell=True, stderr=devnull) 
+                if args['recursive']:
+                    command = "rm -r "
+                else:
+                    command = "rm "
+                run(command + args['directory'] + snapshot + "/snapshot" + args['filename'], shell=True, stderr=devnull)
             print "Deleted from " + args['directory'] + snapshot
         except CalledProcessError as e:
             if "1" in str(e): #an exit code 1 means the file doesn't exist
-                print "Did not find file in " + args['directory'] + snapshot + "/snapshot/. Skipping. "
+                print "Failed to delete the file in " + args['directory'] + snapshot + "/snapshot/. Check that it exists and is not a directory. Skipping. "
             else:
                 print e #otherwise there is an unrecoverable error
                 exit(4)
@@ -67,6 +71,7 @@ if __name__ == '__main__':
     parser_delete.set_defaults(which='delete')
     parser_delete.add_argument('-f', '--filename', required=True, help='Delete a file from all past snapshots. ')
     parser_delete.add_argument('-r', '--range', help="The range of snapshots to delete the file from in the form of startPoint..endPoint (e.g. 2..5)")
+    parser_delete.add_argument('--recursive', action='store_true', default=False, help="Delete recursively (i.e. a folder)")
 
     args = vars(parser.parse_args())
 
