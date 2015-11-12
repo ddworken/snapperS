@@ -28,7 +28,8 @@ def delete(args): #delete functionality
             mountSnapshotRW(args['directory'] + snapshot + "/snapshot/", True) #path to the actual snapshot is /.snapshots/[num]/snapshot/
         except CalledProcessError as e:
             if "50" in str(e): #when btrfs exits with an exit code of 50, there is no valid subvolume
-                print "No subvolume found in " + args['directory'] + snapshot + ". Skipping. "
+                if args['verbose']:
+                    print "No subvolume found in " + args['directory'] + snapshot + ". Skipping. "
                 continue
             print e #if it isn't an exit code of 50, then there is some other unrecoverable error, so we exit
             exit(3)
@@ -39,10 +40,12 @@ def delete(args): #delete functionality
                 else:
                     command = "rm "
                 run(command + args['directory'] + snapshot + "/snapshot" + args['filename'], shell=True, stderr=devnull)
-            print "Deleted from " + args['directory'] + snapshot
+            if args['verbose']:
+                print "Deleted from " + args['directory'] + snapshot
         except CalledProcessError as e:
             if "1" in str(e): #an exit code 1 means the file doesn't exist
-                print "Failed to delete the file in " + args['directory'] + snapshot + "/snapshot/. Check that it exists and is not a directory. Skipping. "
+                if args['verbose']:
+                    print "Failed to delete the file in " + args['directory'] + snapshot + "/snapshot/. Check that it exists and is not a directory. Skipping. "
             else:
                 print e #otherwise there is an unrecoverable error
                 exit(4)
@@ -59,6 +62,7 @@ def cat(args): #cat functionality
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='snapperS: A variety of supplemental snapper subcommands', formatter_class=RawTextHelpFormatter)
     parser.add_argument('-d', '--directory', help='Directory containing the snapshots', default='/.snapshots/')
+    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='Enable verbose logging. If you are experiencing difficulties with this program, try with -v for debugging. ')
     subparsers = parser.add_subparsers(
         title='subcommands', description='cat to run cat on a file from a specific snapshot. \ndelete to delete files from either all snapshots or a range of snapshots. ')
 
