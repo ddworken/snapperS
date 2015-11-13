@@ -79,10 +79,22 @@ def backup(args):
         print "Error! Failed to backup. Try again."
 
 
+def restore(args):
+    try:
+        with open(os.devnull, 'w') as devnull:
+            run('cat ' + args['restoreLocation'] + ' | btrfs receive ' + args['backup'],
+                stderr=devnull,
+                shell=True)
+        print "Sucessfully restored the file. "
+    except CalledProcessError as e:
+        print e
+        print "Error! Failed to restore. Try again."
+
 if __name__ == '__main__':
     subcommandsHelp = {}
     subcommandsHelp['cat'] = 'Read a specified file from a specified snapshot. '
     subcommandsHelp['backup'] = 'Backup a specified snapshot to a file via btrfs send.'
+    subcommandsHelp['restore'] = 'Restore a snapshot from a file generated with snapperS backup. '
     subcommandsHelp['delete'] = 'Delete a specified file from either a range of snapshots or from all snapshots. '
     parser = argparse.ArgumentParser(
         description='snapperS: A variety of supplemental snapper subcommands',
@@ -102,6 +114,7 @@ if __name__ == '__main__':
         title='Subcommands',
         description='\n'.join([subcommandsHelp[key] for key in subcommandsHelp]))
 
+
     parser_cat = subparsers.add_parser('cat',
                                         description=subcommandsHelp['cat'])
     parser_cat.set_defaults(which='cat')
@@ -114,6 +127,7 @@ if __name__ == '__main__':
                             required=True,
                             help='The snapshot to view')
 
+
     parser_backup = subparsers.add_parser('backup',
                                           description=subcommandsHelp['backup']+'It is recommended to compress this file.\n\t-In order to restore this file, run `cat backup | btrfs receive /mnt/subvol`',
                                           formatter_class=RawTextHelpFormatter)
@@ -124,6 +138,18 @@ if __name__ == '__main__':
     parser_backup.add_argument('-s',
                                '--snapshot',
                                help='The number of the snapshot you want to backup')
+
+
+    parser_restore = subparsers.add_parser('restore',
+                                           description=subcommandsHelp['restore'])
+    parser_restore.set_defaults(which='restore')
+    parser_restore.add_argument('-b',
+                               '--backup',
+                               help='The location of the backup. ')
+    parser_restore.add_argument('-r',
+                               '--restoreLocation',
+                               help='The path to where you want to restore the backup. ')
+
 
     parser_delete = subparsers.add_parser('delete',
                                           description=subcommandsHelp['delete'])
@@ -152,3 +178,5 @@ if __name__ == '__main__':
         cat(args)
     if args['which'] == 'backup':
         backup(args)
+    if args['which'] == 'restore':
+        restore(args)

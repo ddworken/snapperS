@@ -13,7 +13,7 @@ A set of subcommands to supplement snapper usage. Tested only on Ubuntu 15.10 (b
 ::
     
     usage: snapperS [-h] [-d DIRECTORY] [-v] {cat,backup,delete} ...
-    
+
     snapperS: A variety of supplemental snapper subcommands
 
     optional arguments:
@@ -84,6 +84,23 @@ snapperS backup
                             The location to store the backup
       -s SNAPSHOT, --snapshot SNAPSHOT
                             The number of the snapshot you want to backup
+
+
+snapperS restore
+
+::
+
+    usage: snapperS restore [-h] [-b BACKUP] [-r RESTORELOCATION]
+
+    Restore a snapshot from a file generated with snapperS backup.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -b BACKUP, --backup BACKUP
+                            The location of the backup.
+      -r RESTORELOCATION, --restoreLocation RESTORELOCATION
+                            The path to where you want to restore the backup.
+
 
 Installation
 -------------
