@@ -14,7 +14,6 @@ def mountSnapshotRW(path, enableWrite):  # set the snapshot at path to rw or ro
             shell=True,
             stderr=devnull)
 
-
 def delete(args):  # delete functionality
     if args['range'] is not None:  # if they specified a range argument
         startPoint = int(args['range'].split('..')[0])  # first number
@@ -43,9 +42,11 @@ def delete(args):  # delete functionality
                     command = "rm -r "
                 else:
                     command = "rm "
-                run(command + args['directory'] + snapshot + "/snapshot" + args['filename'],
-                    shell=True,
-                    stderr=devnull)
+                out = run(command + args['directory'] + snapshot + "/snapshot" + args['filename'],
+                          shell=True,
+                          stderr=devnull)
+                if args['verbose']:
+                    print out
             if args['verbose']:
                 print "Deleted from " + args['directory'] + snapshot
         except CalledProcessError as e:
@@ -70,9 +71,11 @@ def cat(args):  # cat functionality
 def backup(args):
     try:
         with open(os.devnull, 'w') as devnull:
-            run('btrfs send ' + args['directory'] + args['snapshot'] + '/snapshot/ > ' + args['backup'],
-                stderr=devnull,
-                shell=True)
+            out = run('btrfs send -v ' + args['directory'] + args['snapshot'] + '/snapshot/ > ' + args['backup'],
+                      stderr=devnull,
+                      shell=True)
+            if args['verbose']:
+                print out
         print "Sucessfully backed up the file. "
     except CalledProcessError as e:
         print e
@@ -82,9 +85,11 @@ def backup(args):
 def restore(args):
     try:
         with open(os.devnull, 'w') as devnull:
-            run('cat ' + args['restoreLocation'] + ' | btrfs receive ' + args['backup'],
-                stderr=devnull,
-                shell=True)
+            out = run('cat ' + args['restoreLocation'] + ' | btrfs receive -v ' + args['backup'],
+                      stderr=devnull,
+                      shell=True)
+            if args['verbose']:
+                print out
         print "Sucessfully restored the file. "
     except CalledProcessError as e:
         print e
