@@ -8,7 +8,7 @@ snapperS
 .. image:: https://travis-ci.org/ddworken/snapperS.svg?branch=master
     :target: https://travis-ci.org/ddworken/snapperS
     
-A set of subcommands to supplement snapper usage. Tested only on Ubuntu 15.10 (bug reports welcome!). 
+A set of subcommands to supplement snapper usage. Tested on Ubuntu 15.04 and 15.10 with snapper v0.2.4 and btrfs-progs v4.0 (bug reports welcome!). 
 
 ::
     
