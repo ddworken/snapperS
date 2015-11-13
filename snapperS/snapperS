@@ -67,6 +67,17 @@ def cat(args):  # cat functionality
     print run("cat " + args['directory'] + args['snapshot'] + "/snapshot" + args['filename'],
               shell=True)
 
+def backup(args):
+    try:
+        with open(os.devnull, 'w') as devnull:
+            run('btrfs send ' + args['directory'] + args['snapshot'] + '/snapshot/ > ' + args['backup'],
+                stderr=devnull,
+                shell=True)
+        print "Sucessfully backed up the file. "
+    except CalledProcessError as e:
+        print e
+        print "Error! Failed to backup. Try again."
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -84,7 +95,7 @@ if __name__ == '__main__':
         help='Enable verbose logging. If you are experiencing difficulties with this program, try with -v for debugging. ')
     subparsers = parser.add_subparsers(
         title='subcommands',
-        description='cat to run cat on a file from a specific snapshot. \ndelete to delete files from either all snapshots or a range of snapshots. ')
+        description='cat to run cat on a file from a specific snapshot. \ndelete to delete files from either all snapshots or a range of snapshots. \nbackup to backup a snapshot to a file via the btrfs send command. ')
 
     parser_cat = subparsers.add_parser('cat')
     parser_cat.set_defaults(which='cat')
@@ -97,16 +108,24 @@ if __name__ == '__main__':
                             required=True,
                             help='The snapshot to view')
 
+    parser_backup = subparsers.add_parser('backup')
+    parser_backup.set_defaults(which='backup')
+    parser_backup.add_argument('-b',
+                               '--backup',
+                               help='The location to store the backup')
+    parser_backup.add_argument('-s',
+                               '--snapshot',
+                               help='The number of the snapshot you want to backup')
+
     parser_delete = subparsers.add_parser('delete')
     parser_delete.set_defaults(which='delete')
     parser_delete.add_argument('-f',
                                '--filename',
                                required=True,
                                help='Delete a file from all past snapshots. ')
-    parser_delete.add_argument(
-        '-r',
-        '--range',
-        help="The range of snapshots to delete the file from in the form of startPoint..endPoint (e.g. 2..5)")
+    parser_delete.add_argument('-r',
+                               '--range',
+                               help="The range of snapshots to delete the file from in the form of startPoint..endPoint (e.g. 2..5)")
     parser_delete.add_argument('--recursive',
                                action='store_true',
                                default=False,
@@ -122,3 +141,5 @@ if __name__ == '__main__':
         delete(args)
     if args['which'] == 'cat':
         cat(args)
+    if args['which'] == 'backup':
+        backup(args)
