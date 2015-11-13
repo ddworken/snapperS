@@ -1,85 +1,120 @@
 #!/usr/bin/python
 
-from argparse import RawTextHelpFormatter #used so we can use \n in argparse descriptions
+from argparse import RawTextHelpFormatter  # used so we can use \n in argparse descriptions
 
-from subprocess import CalledProcessError #used to catch exceptions
-from subprocess import check_output as run #used to run command to interface with btrfs
-import os #used to check for root and listdir
-import argparse #used for argument parsing
+from subprocess import CalledProcessError  # used to catch exceptions
+from subprocess import check_output as run  # used to run command to interface with btrfs
+import os  # used to check for root and listdir
+import argparse  # used for argument parsing
 
-def mountSnapshotRW(path, enableWrite): #set the snapshot at path to rw or ro
-    with open(os.devnull, 'w') as devnull: #used so we don't have to write stderr to output
-        run("btrfs property set -ts " + path + " ro " + str(not enableWrite).lower(), shell=True, stderr=devnull)
 
-def delete(args): #delete functionality
-    if args['range'] is not None: #if they specified a range argument
-        startPoint = int(args['range'].split('..')[0]) #first number
-        endPoint = int(args['range'].split('..')[1]) #second number
+def mountSnapshotRW(path, enableWrite):  # set the snapshot at path to rw or ro
+    with open(os.devnull, 'w') as devnull:  # used so we don't have to write stderr to output
+        run("btrfs property set -ts " + path + " ro " + str(not enableWrite).lower(),
+            shell=True,
+            stderr=devnull)
 
-    if "/" not in args['filename']: #if the user tried to specify a relative path, warn them
+
+def delete(args):  # delete functionality
+    if args['range'] is not None:  # if they specified a range argument
+        startPoint = int(args['range'].split('..')[0])  # first number
+        endPoint = int(args['range'].split('..')[1])  # second number
+
+    if "/" not in args['filename']:  # if the user tried to specify a relative path, warn them
         print "Specify the absolute path of the file starting with a /"
         exit(2)
 
     for snapshot in os.listdir(args['directory']):
-        if args['range'] is not None: #only limit the start/end points if they user specified them
+        if args['range'] is not None:  # only limit the start/end points if they user specified them
             if not (startPoint <= int(snapshot) <= endPoint):
                 continue
         try:
-            mountSnapshotRW(args['directory'] + snapshot + "/snapshot/", True) #path to the actual snapshot is /.snapshots/[num]/snapshot/
+            mountSnapshotRW(args['directory'] + snapshot + "/snapshot/", True)  # path to the actual snapshot is /.snapshots/[num]/snapshot/
         except CalledProcessError as e:
-            if "50" in str(e): #when btrfs exits with an exit code of 50, there is no valid subvolume
+            if "50" in str(e):  # when btrfs exits with an exit code of 50, there is no valid subvolume
                 if args['verbose']:
                     print "No subvolume found in " + args['directory'] + snapshot + ". Skipping. "
                 continue
-            print e #if it isn't an exit code of 50, then there is some other unrecoverable error, so we exit
+            print e  # if it isn't an exit code of 50, then there is some other unrecoverable error, so we exit
             exit(3)
         try:
-            with open(os.devnull, 'w') as devnull: #used so we don't have to write stderr to output
+            with open(os.devnull, 'w') as devnull:  # used so we don't have to write stderr to output
                 if args['recursive']:
                     command = "rm -r "
                 else:
                     command = "rm "
-                run(command + args['directory'] + snapshot + "/snapshot" + args['filename'], shell=True, stderr=devnull)
+                run(command + args['directory'] + snapshot + "/snapshot" + args['filename'],
+                    shell=True,
+                    stderr=devnull)
             if args['verbose']:
                 print "Deleted from " + args['directory'] + snapshot
         except CalledProcessError as e:
-            if "1" in str(e): #an exit code 1 means the file doesn't exist
+            if "1" in str(e):  # an exit code 1 means the file doesn't exist
                 if args['verbose']:
                     print "Failed to delete the file in " + args['directory'] + snapshot + "/snapshot/. Check that it exists and is not a directory. Skipping. "
             else:
-                print e #otherwise there is an unrecoverable error
+                print e  # otherwise there is an unrecoverable error
                 exit(4)
-        mountSnapshotRW(args['directory'] + snapshot + "/snapshot/", False) #set it back to ro once we are done
+        mountSnapshotRW(args['directory'] + snapshot + "/snapshot/", False)  # set it back to ro once we are done
     try:
         mountSnapshotRW("/", True)
     except:
         print "Error! Failed to remount / as rw. This will require maual intervention to fix. "
         exit(5)
 
-def cat(args): #cat functionality
-    print run("cat " + args['directory'] + args['snapshot'] + "/snapshot" + args['filename'], shell=True)
+
+def cat(args):  # cat functionality
+    print run("cat " + args['directory'] + args['snapshot'] + "/snapshot" + args['filename'],
+              shell=True)
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='snapperS: A variety of supplemental snapper subcommands', formatter_class=RawTextHelpFormatter)
-    parser.add_argument('-d', '--directory', help='Directory containing the snapshots', default='/.snapshots/')
-    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='Enable verbose logging. If you are experiencing difficulties with this program, try with -v for debugging. ')
+    parser = argparse.ArgumentParser(
+        description='snapperS: A variety of supplemental snapper subcommands',
+        formatter_class=RawTextHelpFormatter)
+    parser.add_argument('-d',
+                        '--directory',
+                        help='Directory containing the snapshots',
+                        default='/.snapshots/')
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        action='store_true',
+        default=False,
+        help='Enable verbose logging. If you are experiencing difficulties with this program, try with -v for debugging. ')
     subparsers = parser.add_subparsers(
-        title='subcommands', description='cat to run cat on a file from a specific snapshot. \ndelete to delete files from either all snapshots or a range of snapshots. ')
+        title='subcommands',
+        description='cat to run cat on a file from a specific snapshot. \ndelete to delete files from either all snapshots or a range of snapshots. ')
 
     parser_cat = subparsers.add_parser('cat')
     parser_cat.set_defaults(which='cat')
-    parser_cat.add_argument('-f', '--filename', required=True, help='The file to cat')
-    parser_cat.add_argument('-s', '--snapshot', required=True, help='The snapshot to view')
+    parser_cat.add_argument('-f',
+                            '--filename',
+                            required=True,
+                            help='The file to cat')
+    parser_cat.add_argument('-s',
+                            '--snapshot',
+                            required=True,
+                            help='The snapshot to view')
 
     parser_delete = subparsers.add_parser('delete')
     parser_delete.set_defaults(which='delete')
-    parser_delete.add_argument('-f', '--filename', required=True, help='Delete a file from all past snapshots. ')
-    parser_delete.add_argument('-r', '--range', help="The range of snapshots to delete the file from in the form of startPoint..endPoint (e.g. 2..5)")
-    parser_delete.add_argument('--recursive', action='store_true', default=False, help="Delete recursively (i.e. a folder)")
+    parser_delete.add_argument('-f',
+                               '--filename',
+                               required=True,
+                               help='Delete a file from all past snapshots. ')
+    parser_delete.add_argument(
+        '-r',
+        '--range',
+        help="The range of snapshots to delete the file from in the form of startPoint..endPoint (e.g. 2..5)")
+    parser_delete.add_argument('--recursive',
+                               action='store_true',
+                               default=False,
+                               help="Delete recursively (i.e. a folder)")
 
     args = vars(parser.parse_args())
 
-    if not os.geteuid() == 0: #must be root in order to delete files
+    if not os.geteuid() == 0:  # must be root in order to delete files
         print "You must run this script as root"
         exit(1)
 
@@ -87,4 +122,3 @@ if __name__ == '__main__':
         delete(args)
     if args['which'] == 'cat':
         cat(args)
-
