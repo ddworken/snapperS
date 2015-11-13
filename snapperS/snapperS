@@ -80,6 +80,10 @@ def backup(args):
 
 
 if __name__ == '__main__':
+    subcommandsHelp = {}
+    subcommandsHelp['cat'] = 'Read a specified file from a specified snapshot. '
+    subcommandsHelp['backup'] = 'Backup a specified snapshot to a file via btrfs send.'
+    subcommandsHelp['delete'] = 'Delete a specified file from either a range of snapshots or from all snapshots. '
     parser = argparse.ArgumentParser(
         description='snapperS: A variety of supplemental snapper subcommands',
         formatter_class=RawTextHelpFormatter)
@@ -93,11 +97,13 @@ if __name__ == '__main__':
         action='store_true',
         default=False,
         help='Enable verbose logging. If you are experiencing difficulties with this program, try with -v for debugging. ')
-    subparsers = parser.add_subparsers(
-        title='subcommands',
-        description='cat to run cat on a file from a specific snapshot. \ndelete to delete files from either all snapshots or a range of snapshots. \nbackup to backup a snapshot to a file via the btrfs send command. ')
 
-    parser_cat = subparsers.add_parser('cat')
+    subparsers = parser.add_subparsers(
+        title='Subcommands',
+        description='\n'.join([subcommandsHelp[key] for key in subcommandsHelp]))
+
+    parser_cat = subparsers.add_parser('cat',
+                                        description=subcommandsHelp['cat'])
     parser_cat.set_defaults(which='cat')
     parser_cat.add_argument('-f',
                             '--filename',
@@ -108,7 +114,9 @@ if __name__ == '__main__':
                             required=True,
                             help='The snapshot to view')
 
-    parser_backup = subparsers.add_parser('backup')
+    parser_backup = subparsers.add_parser('backup',
+                                          description=subcommandsHelp['backup']+'It is recommended to compress this file.\n\t-In order to restore this file, run `cat backup | btrfs receive /mnt/subvol`',
+                                          formatter_class=RawTextHelpFormatter)
     parser_backup.set_defaults(which='backup')
     parser_backup.add_argument('-b',
                                '--backup',
@@ -117,7 +125,8 @@ if __name__ == '__main__':
                                '--snapshot',
                                help='The number of the snapshot you want to backup')
 
-    parser_delete = subparsers.add_parser('delete')
+    parser_delete = subparsers.add_parser('delete',
+                                          description=subcommandsHelp['delete'])
     parser_delete.set_defaults(which='delete')
     parser_delete.add_argument('-f',
                                '--filename',

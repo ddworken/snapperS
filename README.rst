@@ -15,19 +15,20 @@ A set of subcommands to supplement snapper usage. Tested only on Ubuntu 15.10 (b
     usage: snapperS [-h] [-d DIRECTORY] [-v] {cat,backup,delete} ...
     
     snapperS: A variety of supplemental snapper subcommands
-    
+
     optional arguments:
       -h, --help            show this help message and exit
       -d DIRECTORY, --directory DIRECTORY
                             Directory containing the snapshots
       -v, --verbose         Enable verbose logging. If you are experiencing difficulties with this program, try with -v for debugging. 
-    
-    subcommands:
-      cat to run cat on a file from a specific snapshot. 
-      delete to delete files from either all snapshots or a range of snapshots. 
-      backup to backup a snapshot to a file via the btrfs send command. 
-    
+
+    Subcommands:
+      Delete a specified file from either a range of snapshots or from all snapshots. 
+      Backup a specified snapshot to a file via btrfs send.
+      Read a specified file from a specified snapshot. 
+
       {cat,backup,delete}
+
 
 
 Subcommands
@@ -38,6 +39,8 @@ snapperS cat
 ::
 
     usage: snapperS cat [-h] -f FILENAME -s SNAPSHOT
+
+    Read a specified file from a specified snapshot.
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -52,7 +55,10 @@ snapperS delete
 ::
 
     usage: snapperS delete [-h] -f FILENAME [-r RANGE] [--recursive]
-    
+
+    Delete a specified file from either a range of snapshots or from all
+    snapshots.
+
     optional arguments:
       -h, --help            show this help message and exit
       -f FILENAME, --filename FILENAME
@@ -68,7 +74,10 @@ snapperS backup
 ::
 
     usage: snapperS backup [-h] [-b BACKUP] [-s SNAPSHOT]
-    
+
+    Backup a specified snapshot to a file via btrfs send.It is recommended to compress this file.
+      -In order to restore this file, run `cat backup | btrfs receive /mnt/subvol`
+
     optional arguments:
       -h, --help            show this help message and exit
       -b BACKUP, --backup BACKUP
@@ -90,3 +99,4 @@ or
     git clone https://github.com/ddworken/snapperS.git
     cd snapperS
     python setup.py install
+
