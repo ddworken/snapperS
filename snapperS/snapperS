@@ -1,4 +1,6 @@
 #!/usr/bin/python
+"""This program is a set of supplemental commands to be used with snapper"""
+
 
 from argparse import RawTextHelpFormatter  # used so we can use \n in argparse descriptions
 
@@ -9,35 +11,44 @@ import argparse  # used for argument parsing
 
 
 def mountSnapshotRW(path, enableWrite):  # set the snapshot at path to rw or ro
+    """Remount a snapshot as ro or rw"""
     with open(os.devnull, 'w') as devnull:  # used so we don't have to write stderr to output
         run("btrfs property set -ts " + path + " ro " + str(not enableWrite).lower(),
             shell=True,
             stderr=devnull)
 
+
 def delete(args):  # delete functionality
+    """Delete a file or folder from a range of snapshots"""
     if args['range'] is not None:  # if they specified a range argument
         startPoint = int(args['range'].split('..')[0])  # first number
         endPoint = int(args['range'].split('..')[1])  # second number
 
-    if "/" not in args['filename']:  # if the user tried to specify a relative path, warn them
+    if '/' not in args['filename']:  # if the user tried to specify a relative path, warn them
         print "Specify the absolute path of the file starting with a /"
         exit(2)
 
     for snapshot in os.listdir(args['directory']):
-        if args['range'] is not None:  # only limit the start/end points if they user specified them
-            if not (startPoint <= int(snapshot) <= endPoint):
+        if args['range'] is not None:
+            # only limit the start/end points if they user specified them
+            if not startPoint <= int(snapshot) <= endPoint:
                 continue
         try:
-            mountSnapshotRW(args['directory'] + snapshot + "/snapshot/", True)  # path to the actual snapshot is /.snapshots/[num]/snapshot/
+            mountSnapshotRW(args['directory'] + snapshot + "/snapshot/", True)
+            # path to the actual snapshot is /.snapshots/[num]/snapshot/
         except CalledProcessError as e:
-            if "50" in str(e):  # when btrfs exits with an exit code of 50, there is no valid subvolume
+            if '50' in str(e):
+                # when btrfs exits with an exit code of 50, there is no valid subvolume
                 if args['verbose']:
                     print "No subvolume found in " + args['directory'] + snapshot + ". Skipping. "
                 continue
-            print e  # if it isn't an exit code of 50, then there is some other unrecoverable error, so we exit
+            print e
+            # if it isn't an exit code of 50, then there is some other
+            # unrecoverable error, so we exit
             exit(3)
         try:
-            with open(os.devnull, 'w') as devnull:  # used so we don't have to write stderr to output
+            with open(os.devnull, 'w') as devnull:
+                # used so we don't have to write stderr to output
                 if args['recursive']:
                     command = "rm -r "
                 else:
@@ -52,26 +63,33 @@ def delete(args):  # delete functionality
         except CalledProcessError as e:
             if "1" in str(e):  # an exit code 1 means the file doesn't exist
                 if args['verbose']:
-                    print "Failed to delete the file in " + args['directory'] + snapshot + "/snapshot/. Check that it exists and is not a directory. Skipping. "
+                    print ("Failed to delete the file in " + args['directory'] +
+                           snapshot + "/snapshot/. Check that it exists and" +
+                           " is not a directory. Skipping. ")
             else:
                 print e  # otherwise there is an unrecoverable error
                 exit(4)
-        mountSnapshotRW(args['directory'] + snapshot + "/snapshot/", False)  # set it back to ro once we are done
+        mountSnapshotRW(args['directory'] + snapshot + "/snapshot/", False)
+        # set it back to ro once we are done
     try:
         mountSnapshotRW("/", True)
-    except:
+    except CalledProcessError as e:
         print "Error! Failed to remount / as rw. This will require maual intervention to fix. "
         exit(5)
 
 
 def cat(args):  # cat functionality
+    """print the contents of a specified file in a specified snapshot"""
     print run("cat " + args['directory'] + args['snapshot'] + "/snapshot" + args['filename'],
               shell=True)
 
+
 def backup(args):
+    """backup the specified snapshot to a specified file"""
     try:
         with open(os.devnull, 'w') as devnull:
-            out = run('btrfs send -v ' + args['directory'] + args['snapshot'] + '/snapshot/ > ' + args['backup'],
+            out = run(("btrfs send -v " + args['directory'] + args['snapshot'] +
+                       "/snapshot/ > " + args['backup']),
                       stderr=devnull,
                       shell=True)
             if args['verbose']:
@@ -83,9 +101,10 @@ def backup(args):
 
 
 def restore(args):
+    """restore the specified file to the specified mount point"""
     try:
         with open(os.devnull, 'w') as devnull:
-            out = run('cat ' + args['restoreLocation'] + ' | btrfs receive -v ' + args['backup'],
+            out = run("cat " + args['restoreLocation'] + " | btrfs receive -v " + args['backup'],
                       stderr=devnull,
                       shell=True)
             if args['verbose']:
@@ -95,14 +114,17 @@ def restore(args):
         print e
         print "Error! Failed to restore. Try again."
 
-if __name__ == '__main__':
+
+def main():
+    """main function containing argument parsing code"""
     subcommandsHelp = {}
-    subcommandsHelp['cat'] = 'Read a specified file from a specified snapshot. '
-    subcommandsHelp['backup'] = 'Backup a specified snapshot to a file via btrfs send.'
-    subcommandsHelp['restore'] = 'Restore a snapshot from a file generated with snapperS backup. '
-    subcommandsHelp['delete'] = 'Delete a specified file from either a range of snapshots or from all snapshots. '
+    subcommandsHelp['cat'] = "Read a specified file from a specified snapshot. "
+    subcommandsHelp['backup'] = "Backup a specified snapshot to a file via btrfs send. "
+    subcommandsHelp['restore'] = "Restore a snapshot from a file generated with snapperS backup. "
+    subcommandsHelp['delete'] = ("Delete a specified file from either a range of snapshots " +
+                                 "or from all snapshots. ")
     parser = argparse.ArgumentParser(
-        description='snapperS: A variety of supplemental snapper subcommands',
+        description="snapperS: A variety of supplemental snapper subcommands",
         formatter_class=RawTextHelpFormatter)
     parser.add_argument('-d',
                         '--directory',
@@ -113,48 +135,49 @@ if __name__ == '__main__':
         '--verbose',
         action='store_true',
         default=False,
-        help='Enable verbose logging. If you are experiencing difficulties with this program, try with -v for debugging. ')
+        help=("Enable verbose logging. If you are experiencing difficulties " +
+              "with this program, try with -v for debugging. "))
 
     subparsers = parser.add_subparsers(
         title='Subcommands',
         description='\n'.join([subcommandsHelp[key] for key in subcommandsHelp]))
 
-
     parser_cat = subparsers.add_parser('cat',
-                                        description=subcommandsHelp['cat'])
+                                       description=subcommandsHelp['cat'])
     parser_cat.set_defaults(which='cat')
     parser_cat.add_argument('-f',
                             '--filename',
                             required=True,
-                            help='The file to cat')
+                            help="The file to cat")
     parser_cat.add_argument('-s',
                             '--snapshot',
                             required=True,
-                            help='The snapshot to view')
-
+                            help="The snapshot to view")
 
     parser_backup = subparsers.add_parser('backup',
-                                          description=subcommandsHelp['backup']+'It is recommended to compress this file.\n\t-In order to restore this file, run `cat backup | btrfs receive /mnt/subvol`',
+                                          description=(subcommandsHelp['backup'] +
+                                                       "It is recommended to compress this file." +
+                                                       "\n\t-In order to restore this file, run " +
+                                                       "`cat backup | btrfs receive " +
+                                                       "/mnt/subvol`"),
                                           formatter_class=RawTextHelpFormatter)
     parser_backup.set_defaults(which='backup')
     parser_backup.add_argument('-b',
                                '--backup',
-                               help='The location to store the backup')
+                               help="The location to store the backup")
     parser_backup.add_argument('-s',
                                '--snapshot',
-                               help='The number of the snapshot you want to backup')
-
+                               help="The number of the snapshot you want to backup")
 
     parser_restore = subparsers.add_parser('restore',
                                            description=subcommandsHelp['restore'])
     parser_restore.set_defaults(which='restore')
     parser_restore.add_argument('-b',
-                               '--backup',
-                               help='The location of the backup. ')
+                                '--backup',
+                                help="The location of the backup. ")
     parser_restore.add_argument('-r',
-                               '--restoreLocation',
-                               help='The path to where you want to restore the backup. ')
-
+                                '--restoreLocation',
+                                help="The path to where you want to restore the backup. ")
 
     parser_delete = subparsers.add_parser('delete',
                                           description=subcommandsHelp['delete'])
@@ -162,10 +185,11 @@ if __name__ == '__main__':
     parser_delete.add_argument('-f',
                                '--filename',
                                required=True,
-                               help='Delete a file from all past snapshots. ')
+                               help="Delete a file from all past snapshots. ")
     parser_delete.add_argument('-r',
                                '--range',
-                               help="The range of snapshots to delete the file from in the form of startPoint..endPoint (e.g. 2..5)")
+                               help=("The range of snapshots to delete the file from in the " +
+                                     "form of startPoint..endPoint (e.g. 2..5)"))
     parser_delete.add_argument('--recursive',
                                action='store_true',
                                default=False,
@@ -185,3 +209,7 @@ if __name__ == '__main__':
         backup(args)
     if args['which'] == 'restore':
         restore(args)
+
+
+if __name__ == '__main__':
+    main()

@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='snapperS',
-    version='0.3.4',
+    version='0.3.5',
     author='David Dworken',
     author_email='david@daviddworken.com',
     packages=['snapperS'],
@@ -15,4 +15,3 @@ setup(
         "subprocess",
     ],
 )
-
