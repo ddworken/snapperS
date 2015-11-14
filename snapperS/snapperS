@@ -148,10 +148,12 @@ def main():
     parser_cat.add_argument('-f',
                             '--filename',
                             required=True,
+                            metavar="~/file.txt",
                             help="The file to cat")
     parser_cat.add_argument('-s',
                             '--snapshot',
                             required=True,
+                            metavar="42",
                             help="The snapshot to view")
 
     parser_backup = subparsers.add_parser('backup',
@@ -164,9 +166,13 @@ def main():
     parser_backup.set_defaults(which='backup')
     parser_backup.add_argument('-b',
                                '--backup',
+                               required=True,
+                               metavar="~/BTRFS_Backup.send",
                                help="The location to store the backup")
     parser_backup.add_argument('-s',
                                '--snapshot',
+                               required=True,
+                               metavar="42",
                                help="The number of the snapshot you want to backup")
 
     parser_restore = subparsers.add_parser('restore',
@@ -174,9 +180,13 @@ def main():
     parser_restore.set_defaults(which='restore')
     parser_restore.add_argument('-b',
                                 '--backup',
+                                required=True,
+                                metavar="~/BTRFS_Backup.send",
                                 help="The location of the backup. ")
     parser_restore.add_argument('-r',
                                 '--restoreLocation',
+                                required=True,
+                                metavar="~/newRestoredSubvolume/",
                                 help="The path to where you want to restore the backup. ")
 
     parser_delete = subparsers.add_parser('delete',
@@ -185,9 +195,11 @@ def main():
     parser_delete.add_argument('-f',
                                '--filename',
                                required=True,
+                               metavar="~/largeFile.img",
                                help="Delete a file from all past snapshots. ")
     parser_delete.add_argument('-r',
                                '--range',
+                               metavar="1..42",
                                help=("The range of snapshots to delete the file from in the " +
                                      "form of startPoint..endPoint (e.g. 2..5)"))
     parser_delete.add_argument('--recursive',

@@ -8,11 +8,11 @@ snapperS
 .. image:: https://travis-ci.org/ddworken/snapperS.svg?branch=master
     :target: https://travis-ci.org/ddworken/snapperS
     
-A set of subcommands to supplement snapper usage. Tested on Ubuntu 15.04 and 15.10 with snapper v0.2.4 and btrfs-progs v4.0 (bug reports welcome!). 
+A set of subcommands to supplement snapper usage. Tested on Ubuntu 15.04 and 15.10 with snapper v0.2.4 and btrfs-progs v4.0 (bug reports welcome!).
 
 ::
     
-    usage: snapperS [-h] [-d DIRECTORY] [-v] {cat,backup,delete} ...
+    usage: snapperS [-h] [-d DIRECTORY] [-v] {cat,backup,restore,delete} ...
 
     snapperS: A variety of supplemental snapper subcommands
 
@@ -23,11 +23,12 @@ A set of subcommands to supplement snapper usage. Tested on Ubuntu 15.04 and 15.
       -v, --verbose         Enable verbose logging. If you are experiencing difficulties with this program, try with -v for debugging. 
 
     Subcommands:
+      Restore a snapshot from a file generated with snapperS backup. 
       Delete a specified file from either a range of snapshots or from all snapshots. 
-      Backup a specified snapshot to a file via btrfs send.
+      Backup a specified snapshot to a file via btrfs send. 
       Read a specified file from a specified snapshot. 
 
-      {cat,backup,delete}
+      {cat,backup,restore,delete}
 
 
 
@@ -38,13 +39,13 @@ snapperS cat
 
 ::
 
-    usage: snapperS cat [-h] -f FILENAME -s SNAPSHOT
+    usage: snapperS cat [-h] -f ~/file.txt -s SNAPSHOT
 
     Read a specified file from a specified snapshot.
 
     optional arguments:
       -h, --help            show this help message and exit
-      -f FILENAME, --filename FILENAME
+      -f ~/file.txt, --filename ~/file.txt
                             The file to cat
       -s SNAPSHOT, --snapshot SNAPSHOT
                             The snapshot to view
@@ -54,16 +55,16 @@ snapperS delete
 
 ::
 
-    usage: snapperS delete [-h] -f FILENAME [-r RANGE] [--recursive]
+    usage: snapperS delete [-h] -f ~/largeFile.img [-r 1..42] [--recursive]
 
     Delete a specified file from either a range of snapshots or from all
     snapshots.
 
     optional arguments:
       -h, --help            show this help message and exit
-      -f FILENAME, --filename FILENAME
+      -f ~/largeFile.img, --filename ~/largeFile.img
                             Delete a file from all past snapshots.
-      -r RANGE, --range RANGE
+      -r 1..42, --range 1..42
                             The range of snapshots to delete the file from in the
                             form of startPoint..endPoint (e.g. 2..5)
       --recursive           Delete recursively (i.e. a folder)
@@ -73,32 +74,31 @@ snapperS backup
 
 ::
 
-    usage: snapperS backup [-h] [-b BACKUP] [-s SNAPSHOT]
+    usage: snapperS backup [-h] -b ~/BTRFS_Backup.send -s 42
 
-    Backup a specified snapshot to a file via btrfs send.It is recommended to compress this file.
+    Backup a specified snapshot to a file via btrfs send. It is recommended to compress this file.
       -In order to restore this file, run `cat backup | btrfs receive /mnt/subvol`
 
     optional arguments:
       -h, --help            show this help message and exit
-      -b BACKUP, --backup BACKUP
+      -b ~/BTRFS_Backup.send, --backup ~/BTRFS_Backup.send
                             The location to store the backup
-      -s SNAPSHOT, --snapshot SNAPSHOT
-                            The number of the snapshot you want to backup
+      -s 42, --snapshot 42  The number of the snapshot you want to backup
 
 
 snapperS restore
 
 ::
 
-    usage: snapperS restore [-h] [-b BACKUP] [-r RESTORELOCATION]
+    usage: snapperS restore [-h] -b ~/BTRFS_Backup.send -r ~/newRestoredSubvolume/
 
     Restore a snapshot from a file generated with snapperS backup.
 
     optional arguments:
       -h, --help            show this help message and exit
-      -b BACKUP, --backup BACKUP
+      -b ~/BTRFS_Backup.send, --backup ~/BTRFS_Backup.send
                             The location of the backup.
-      -r RESTORELOCATION, --restoreLocation RESTORELOCATION
+      -r ~/newRestoredSubvolume/, --restoreLocation ~/newRestoredSubvolume/
                             The path to where you want to restore the backup.
 
 
