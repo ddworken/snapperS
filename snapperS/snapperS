@@ -1,6 +1,7 @@
 #!/usr/bin/python
 """This program is a set of supplemental commands to be used with snapper"""
 
+__version__ = '1.1.0'
 
 from argparse import RawTextHelpFormatter  # used so we can use \n in argparse descriptions
 import argparse  # used for argument parsing
@@ -165,6 +166,8 @@ def main():
                              "or from all snapshots. ")
     subcommandsHelp['list'] = ("A more comprehensive version of snapper list that includes "
                                "information on space usage. ")
+
+    # create the parser
     parser = argparse.ArgumentParser(description="snapperS: A variety of supplemental snapper subcommands",
                                      formatter_class=RawTextHelpFormatter)  # so we can use \n and \t
     parser.add_argument('-d',  # for if the user has changed the snapper mount point
@@ -177,6 +180,10 @@ def main():
                         default=False,
                         help=("Enable verbose logging. If you are experiencing difficulties " +
                               "with this program, try with -v for debugging. "))
+    parser.add_argument('-V',
+                        '--version',
+                        action="version",
+                        version="%(prog)s " + __version__)
 
     subparsers = parser.add_subparsers(title='Subcommands',  # list of subcommands
                                        description='\n'.join([subcommandsHelp[key] for key in subcommandsHelp]))
