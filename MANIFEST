@@ -5,3 +5,4 @@ README.rst
 requirements.txt
 setup.py
 snapperS/__init__.py
+snapperS/snapperS
