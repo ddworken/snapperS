@@ -12,7 +12,7 @@ A set of subcommands to supplement snapper usage. Tested on Ubuntu 15.04 and 15.
 
 ::
     
-    usage: snapperS [-h] [-d DIRECTORY] [-v] {cat,backup,restore,delete,list} ...
+    usage: snapperS [-h] [-d DIRECTORY] [-v] {cat,backup,restore,rm,list} ...
 
     snapperS: A variety of supplemental snapper subcommands
 
@@ -24,13 +24,12 @@ A set of subcommands to supplement snapper usage. Tested on Ubuntu 15.04 and 15.
 
     Subcommands:
       Restore a snapshot from a file generated with snapperS backup. 
-      List the space used in each subvolume. 
-      Delete a specified file from either a range of snapshots or from all snapshots. 
+      A more comprehensive version of snapper list that includes information on space usage. 
       Backup a specified snapshot to a file via btrfs send. 
+      Delete a specified file from either a range of snapshots or from all snapshots. 
       Read a specified file from a specified snapshot. 
 
-      {cat,backup,restore,delete,list}
-
+      {cat,backup,restore,rm,list}
 
 
 Subcommands
@@ -52,11 +51,11 @@ snapperS cat
                             The snapshot to view
 
 
-snapperS delete
+snapperS rm
 
 ::
 
-    usage: snapperS delete [-h] -f ~/largeFile.img [-r 1..42] [--recursive]
+    usage: snapperS rm [-h] -f ~/largeFile.img [-r 1..42] [--recursive]
 
     Delete a specified file from either a range of snapshots or from all
     snapshots.

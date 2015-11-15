@@ -160,7 +160,7 @@ def main():
     subcommandsHelp['cat'] = "Read a specified file from a specified snapshot. "
     subcommandsHelp['backup'] = "Backup a specified snapshot to a file via btrfs send. "
     subcommandsHelp['restore'] = "Restore a snapshot from a file generated with snapperS backup. "
-    subcommandsHelp['delete'] = ("Delete a specified file from either a range of snapshots " +
+    subcommandsHelp['rm'] = ("Delete a specified file from either a range of snapshots " +
                                  "or from all snapshots. ")
     subcommandsHelp['list'] = ("A more comprehensive version of snapper list that includes "
                                "information on space usage. ")
@@ -233,23 +233,23 @@ def main():
                                 metavar="~/newRestoredSubvolume/",
                                 help="The path to where you want to restore the backup. ")
 
-    parser_delete = subparsers.add_parser('delete',
-                                          description=subcommandsHelp['delete'])
-    parser_delete.set_defaults(which='delete')
-    parser_delete.add_argument('-f',
-                               '--filename',
-                               required=True,
-                               metavar="~/largeFile.img",
-                               help="Delete a file from all past snapshots. ")
-    parser_delete.add_argument('-r',
-                               '--range',
-                               metavar="1..42",
-                               help=("The range of snapshots to delete the file from in the " +
-                                     "form of startPoint..endPoint (e.g. 2..5)"))
-    parser_delete.add_argument('--recursive',
-                               action='store_true',
-                               default=False,
-                               help="Delete recursively (i.e. a folder)")
+    parser_rm = subparsers.add_parser('rm',
+                                      description=subcommandsHelp['rm'])
+    parser_rm.set_defaults(which='rm')
+    parser_rm.add_argument('-f',
+                           '--filename',
+                           required=True,
+                           metavar="~/largeFile.img",
+                           help="Delete a file from all past snapshots. ")
+    parser_rm.add_argument('-r',
+                           '--range',
+                           metavar="1..42",
+                           help=("The range of snapshots to delete the file from in the " +
+                                 "form of startPoint..endPoint (e.g. 2..5)"))
+    parser_rm.add_argument('--recursive',
+                           action='store_true',
+                           default=False,
+                           help="Delete recursively (i.e. a folder)")
 
     parser_list = subparsers.add_parser('list',
                                         description=subcommandsHelp['list'])
