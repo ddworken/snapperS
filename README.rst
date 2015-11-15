@@ -75,10 +75,11 @@ snapperS backup
 ::
 
     usage: snapperS backup [-h] -b ~/BTRFS_Backup.send -s 42
-
+    
     Backup a specified snapshot to a file via btrfs send. It is recommended to compress this file.
-      -In order to restore this file, run `cat backup | btrfs receive /mnt/subvol`
-
+        -In order to restore this file, run `cat backup | btrfs receive /mnt/subvol`
+        -If you want to sync your backups to another BTRFS filesystem, ButterSink is better suited for that purpose. 
+    
     optional arguments:
       -h, --help            show this help message and exit
       -b ~/BTRFS_Backup.send, --backup ~/BTRFS_Backup.send

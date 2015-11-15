@@ -3,7 +3,6 @@
 
 
 from argparse import RawTextHelpFormatter  # used so we can use \n in argparse descriptions
-
 from subprocess import CalledProcessError  # used to catch exceptions
 from subprocess import check_output as run  # used to run command to interface with btrfs
 import os  # used to check for root and listdir
@@ -161,7 +160,10 @@ def main():
                                                        "It is recommended to compress this file." +
                                                        "\n\t-In order to restore this file, run " +
                                                        "`cat backup | btrfs receive " +
-                                                       "/mnt/subvol`"),
+                                                       "/mnt/subvol`"
+                                                       "\n\t-If you want to sync your backups to "
+                                                       "another BTRFS filesystem, ButterSink is "
+                                                       "better suited for that purpose. "),
                                           formatter_class=RawTextHelpFormatter)
     parser_backup.set_defaults(which='backup')
     parser_backup.add_argument('-b',
