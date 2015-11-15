@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='snapperS',
-    version='0.3.7',
+    version='0.4.0',
     author='David Dworken',
     author_email='david@daviddworken.com',
     packages=['snapperS'],
@@ -13,5 +13,6 @@ setup(
     install_requires=[
         "argparse",
         "subprocess",
+        "tabulate",
     ],
 )

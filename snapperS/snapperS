@@ -3,10 +3,13 @@
 
 
 from argparse import RawTextHelpFormatter  # used so we can use \n in argparse descriptions
+import argparse  # used for argument parsing
+
 from subprocess import CalledProcessError  # used to catch exceptions
 from subprocess import check_output as run  # used to run command to interface with btrfs
 import os  # used to check for root and listdir
-import argparse  # used for argument parsing
+
+from tabulate import tabulate  # used for snapperS list
 
 
 def mountSnapshotRW(path, enableWrite):  # set the snapshot at path to rw or ro
@@ -114,6 +117,43 @@ def restore(args):
         print "Error! Failed to restore. Try again."
 
 
+def listSubvolumes():
+    subvols = run("btrfs subvolume list /", shell=True).splitlines()[1:]
+    btrfsIDToSnapperID = {}
+    for line in subvols:
+        btrfsID = int(line.split(' ')[1])
+        snapperID = int(line.split(' ')[-1].split('/')[1])
+        btrfsIDToSnapperID[btrfsID] = snapperID
+    storageInfo = run("btrfs qgroup show /", shell=True).splitlines()[2:]
+    snapperIDToSpaceTuple = {}
+    btrfsIDToSpaceTuple = {}
+    for line in storageInfo:
+        data = [datum for datum in line.split(' ') if datum != '']
+        tuple = (data[1], data[2])
+        btrfsID = int(data[0].split('/')[1])
+        try:
+            snapperID = btrfsIDToSnapperID[btrfsID]
+        except KeyError as e:
+            pass
+        snapperIDToSpaceTuple[snapperID] = tuple
+        btrfsIDToSpaceTuple[btrfsID] = tuple
+    snapperList = run("snapper list", shell=True).splitlines()
+    table = []
+    headers = [section for section in snapperList[0].replace('|', '').split(' ') if section != '']
+    headers.extend(["Size", "Unique Size"])
+    for line in snapperList[2:]:
+        lineArr = line.split(' | ')
+        snapperID = int(lineArr[1])
+        try:
+            spaceTuple = snapperIDToSpaceTuple[snapperID]
+        except:
+            spaceTuple = ("N/A", "N/A")
+        lineArr.append(" ")
+        lineArr.extend(list(spaceTuple))
+        table.append(lineArr)
+    print tabulate(table, headers=headers, tablefmt="psql")
+
+
 def main():
     """main function containing argument parsing code"""
     subcommandsHelp = {}
@@ -122,6 +162,8 @@ def main():
     subcommandsHelp['restore'] = "Restore a snapshot from a file generated with snapperS backup. "
     subcommandsHelp['delete'] = ("Delete a specified file from either a range of snapshots " +
                                  "or from all snapshots. ")
+    subcommandsHelp['list'] = ("A more comprehensive version of snapper list that includes "
+                               "information on space usage. ")
     parser = argparse.ArgumentParser(
         description="snapperS: A variety of supplemental snapper subcommands",
         formatter_class=RawTextHelpFormatter)
@@ -209,6 +251,10 @@ def main():
                                default=False,
                                help="Delete recursively (i.e. a folder)")
 
+    parser_list = subparsers.add_parser('list',
+                                        description=subcommandsHelp['list'])
+    parser_list.set_defaults(which='list')
+
     args = vars(parser.parse_args())
 
     if not os.geteuid() == 0:  # must be root in order to delete files
@@ -223,6 +269,8 @@ def main():
         backup(args)
     if args['which'] == 'restore':
         restore(args)
+    if args['which'] == 'list':
+        listSubvolumes()
 
 
 if __name__ == '__main__':
