@@ -19,3 +19,4 @@ v1.0.0, 11/15/15 -- Switched snapperS delete to snapperS rm to match snapperS ca
 v1.0.1, 11/15/15 -- Added documentation. 
 v1.1.0, 11/15/15 -- Added --version flag. 
 v1.1.1, 11/15/15 -- Fixed packaging error. 
+v1.1.2, 11/15/15 -- Fixed packaging error. 

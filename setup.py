@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='snapperS',
-    version='1.1.1',
+    version='1.1.2',
     author='David Dworken',
     author_email='david@daviddworken.com',
     packages=['snapperS'],
@@ -12,7 +12,6 @@ setup(
     long_description=open('README.rst').read(),
     install_requires=[
         "argparse",
-        "subprocess",
         "tabulate",
     ],
 )
