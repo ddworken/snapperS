@@ -89,8 +89,8 @@ def cat(args):  # cat functionality
 def backup(args):
     """backup the specified snapshot to a specified file"""
     try:
-        with open(os.devnull, 'w') as devnull:
-            out = run(("btrfs send -v " + args['directory'] + args['snapshot'] +
+        with open(os.devnull, 'w') as devnull:  # used to surpress stderr
+            out = run(("btrfs send -v " + args['directory'] + args['snapshot'] +  # redirect output of btrfs send to a file
                        "/snapshot/ > " + args['backup']),
                       stderr=devnull,
                       shell=True)
@@ -105,8 +105,8 @@ def backup(args):
 def restore(args):
     """restore the specified file to the specified mount point"""
     try:
-        with open(os.devnull, 'w') as devnull:
-            out = run("cat " + args['restoreLocation'] + " | btrfs receive -v " + args['backup'],
+        with open(os.devnull, 'w') as devnull:  # used to surpress stderr
+            out = run("cat " + args['restoreLocation'] + " | btrfs receive -v " + args['backup'],  # pipe the backup into btrfs receive
                       stderr=devnull,
                       shell=True)
             if args['verbose']:
@@ -118,71 +118,70 @@ def restore(args):
 
 
 def listSubvolumes():
-    subvols = run("btrfs subvolume list /", shell=True).splitlines()[1:]
-    btrfsIDToSnapperID = {}
+    """list all of the snapper subvolumes including information on the sizes of the subvolumes"""
+    subvols = run("btrfs subvolume list /", shell=True).splitlines()[1:]  # get a list of all of the subvolumes that we use to generate the
+    btrfsIDToSnapperID = {}  # dict that maps a btrfsID to a snapperID
     for line in subvols:
-        btrfsID = int(line.split(' ')[1])
-        snapperID = int(line.split(' ')[-1].split('/')[1])
-        btrfsIDToSnapperID[btrfsID] = snapperID
-    storageInfo = run("btrfs qgroup show /", shell=True).splitlines()[2:]
-    snapperIDToSpaceTuple = {}
-    btrfsIDToSpaceTuple = {}
+        btrfsID = int(line.split(' ')[1])  # parse the btrfsID
+        snapperID = int(line.split(' ')[-1].split('/')[1])  # parse the snapperID
+        btrfsIDToSnapperID[btrfsID] = snapperID  # put the information into the dict
+    storageInfo = run("btrfs qgroup show /", shell=True).splitlines()[2:]  # get the information about the size of the subvolumes
+    snapperIDToSpaceTuple = {}  # maps a snapperID to a tuple of (dataSize, uniqueDataSize)
+    btrfsIDToSpaceTuple = {}  # maps a btrfsID to a tuple of (dataSize, uniqueDataSize)
     for line in storageInfo:
-        data = [datum for datum in line.split(' ') if datum != '']
-        tuple = (data[1], data[2])
-        btrfsID = int(data[0].split('/')[1])
-        try:
-            snapperID = btrfsIDToSnapperID[btrfsID]
+        data = [datum for datum in line.split(' ') if datum != '']  # parse the data points by splitting on ' ' and ignoring the blanks
+        tuple = (data[1], data[2])  # create the spaceTuple
+        btrfsID = int(data[0].split('/')[1])  # parse the btrfsID
+        try:  # try because sometimes there will be a KeyError
+            snapperID = btrfsIDToSnapperID[btrfsID]  # parse the snapperID
+            snapperIDToSpaceTuple[snapperID] = tuple  # add to the snapperID dict
         except KeyError as e:
             pass
-        snapperIDToSpaceTuple[snapperID] = tuple
-        btrfsIDToSpaceTuple[btrfsID] = tuple
-    snapperList = run("snapper list", shell=True).splitlines()
-    table = []
-    headers = [section for section in snapperList[0].replace('|', '').split(' ') if section != '']
-    headers.extend(["Size", "Unique Size"])
-    for line in snapperList[2:]:
-        lineArr = line.split(' | ')
-        snapperID = int(lineArr[1])
+        btrfsIDToSpaceTuple[btrfsID] = tuple  # add to the btrfsID dict
+    snapperList = run("snapper list", shell=True).splitlines()  # get data from snapper that we will then supplement
+    table = []  # a list of lists that tabulate() will use
+    headers = [section for section in snapperList[0].replace('|', '').split(' ') if section != '']  # parse the headers
+    headers.extend(["Size", "Unique Size"])  # add the headers that we will use
+    for line in snapperList[2:]:  # for line in list of data points
+        lineArr = line.split(' | ')  # split on the ' | ' in order to get the data points
+        snapperID = int(lineArr[1])  # parse the snapperID
         try:
             spaceTuple = snapperIDToSpaceTuple[snapperID]
         except:
-            spaceTuple = ("N/A", "N/A")
-        lineArr.append(" ")
-        lineArr.extend(list(spaceTuple))
-        table.append(lineArr)
-    print tabulate(table, headers=headers, tablefmt="psql")
+            spaceTuple = ("N/A", "N/A")  # for snapperID == 0
+        lineArr.append(" ")  # for the userdata column
+        lineArr.extend(list(spaceTuple))  # add the space data
+        table.append(lineArr)  # append our line to the table
+    print tabulate(table, headers=headers, tablefmt="psql")  # print a table with the headers and in format of psql
 
 
 def main():
     """main function containing argument parsing code"""
-    subcommandsHelp = {}
+    subcommandsHelp = {}  # dict that contains the help information for the subcommands
     subcommandsHelp['cat'] = "Read a specified file from a specified snapshot. "
     subcommandsHelp['backup'] = "Backup a specified snapshot to a file via btrfs send. "
     subcommandsHelp['restore'] = "Restore a snapshot from a file generated with snapperS backup. "
     subcommandsHelp['rm'] = ("Delete a specified file from either a range of snapshots " +
-                                 "or from all snapshots. ")
+                             "or from all snapshots. ")
     subcommandsHelp['list'] = ("A more comprehensive version of snapper list that includes "
                                "information on space usage. ")
-    parser = argparse.ArgumentParser(
-        description="snapperS: A variety of supplemental snapper subcommands",
-        formatter_class=RawTextHelpFormatter)
-    parser.add_argument('-d',
+    parser = argparse.ArgumentParser(description="snapperS: A variety of supplemental snapper subcommands",
+                                     formatter_class=RawTextHelpFormatter)  # so we can use \n and \t
+    parser.add_argument('-d',  # for if the user has changed the snapper mount point
                         '--directory',
                         help='Directory containing the snapshots',
                         default='/.snapshots/')
-    parser.add_argument(
-        '-v',
-        '--verbose',
-        action='store_true',
-        default=False,
-        help=("Enable verbose logging. If you are experiencing difficulties " +
-              "with this program, try with -v for debugging. "))
+    parser.add_argument('-v',  # enable debug logging
+                        '--verbose',
+                        action='store_true',
+                        default=False,
+                        help=("Enable verbose logging. If you are experiencing difficulties " +
+                              "with this program, try with -v for debugging. "))
 
-    subparsers = parser.add_subparsers(
-        title='Subcommands',
-        description='\n'.join([subcommandsHelp[key] for key in subcommandsHelp]))
+    subparsers = parser.add_subparsers(title='Subcommands',  # list of subcommands
+                                       description='\n'.join([subcommandsHelp[key] for key in subcommandsHelp]))
 
+    # cat subcommand
     parser_cat = subparsers.add_parser('cat',
                                        description=subcommandsHelp['cat'])
     parser_cat.set_defaults(which='cat')
@@ -197,6 +196,7 @@ def main():
                             metavar="42",
                             help="The snapshot to view")
 
+    # backup subcommand
     parser_backup = subparsers.add_parser('backup',
                                           description=(subcommandsHelp['backup'] +
                                                        "It is recommended to compress this file." +
@@ -219,6 +219,7 @@ def main():
                                metavar="42",
                                help="The number of the snapshot you want to backup")
 
+    # restore subcommand
     parser_restore = subparsers.add_parser('restore',
                                            description=subcommandsHelp['restore'])
     parser_restore.set_defaults(which='restore')
@@ -233,6 +234,7 @@ def main():
                                 metavar="~/newRestoredSubvolume/",
                                 help="The path to where you want to restore the backup. ")
 
+    # rm subcommand
     parser_rm = subparsers.add_parser('rm',
                                       description=subcommandsHelp['rm'])
     parser_rm.set_defaults(which='rm')
@@ -251,16 +253,19 @@ def main():
                            default=False,
                            help="Delete recursively (i.e. a folder)")
 
+    # list subcommand
     parser_list = subparsers.add_parser('list',
                                         description=subcommandsHelp['list'])
     parser_list.set_defaults(which='list')
 
+    # parse the arguments
     args = vars(parser.parse_args())
 
-    if not os.geteuid() == 0:  # must be root in order to delete files
+    if not os.geteuid() == 0:  # must be root in order to manipulate snapshots
         print "You must run this script as root"
         exit(1)
 
+    # parsing the subcommands
     if args['which'] == 'delete':
         delete(args)
     if args['which'] == 'cat':
