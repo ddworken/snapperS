@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """This program is a set of supplemental commands to be used with snapper"""
 
-__version__ = '1.1.4'
+__version__ = '1.1.5'
 
 from argparse import RawTextHelpFormatter  # used so we can use \n in argparse descriptions
 import argparse  # used for argument parsing
@@ -91,7 +91,8 @@ def backup(args):
     """backup the specified snapshot to a specified file"""
     try:
         with open(os.devnull, 'w') as devnull:  # used to surpress stderr
-            out = run(("btrfs send -v " + args['directory'] + args['snapshot'] +  # redirect output of btrfs send to a file
+            # redirect output of btrfs send to a file
+            out = run(("btrfs send -v " + args['directory'] + args['snapshot'] +
                        "/snapshot/ > " + args['backup']),
                       stderr=devnull,
                       shell=True)
@@ -107,7 +108,8 @@ def restore(args):
     """restore the specified file to the specified mount point"""
     try:
         with open(os.devnull, 'w') as devnull:  # used to surpress stderr
-            out = run("cat " + args['restoreLocation'] + " | btrfs receive -v " + args['backup'],  # pipe the backup into btrfs receive
+            # pipe the backup into btrfs receive
+            out = run("cat " + args['restoreLocation'] + " | btrfs receive -v " + args['backup'],
                       stderr=devnull,
                       shell=True)
             if args['verbose']:
@@ -120,17 +122,19 @@ def restore(args):
 
 def listSubvolumes():
     """list all of the snapper subvolumes including information on the sizes of the subvolumes"""
-    subvols = run("btrfs subvolume list /", shell=True).splitlines()[1:]  # get a list of all of the subvolumes that we use to generate the
-    btrfsIDToSnapperID = {}  # dict that maps a btrfsID to a snapperID
+    subvols = run("btrfs subvolume list /", shell=True).splitlines()[1:]  # get a list of all of
+    btrfsIDToSnapperID = {}  # the subvolumes that we use to generate the dict to map between them
     for line in subvols:
         btrfsID = int(line.split(' ')[1])  # parse the btrfsID
         snapperID = int(line.split(' ')[-1].split('/')[1])  # parse the snapperID
         btrfsIDToSnapperID[btrfsID] = snapperID  # put the information into the dict
-    storageInfo = run("btrfs qgroup show /", shell=True).splitlines()[2:]  # get the information about the size of the subvolumes
+    # get the information about the size of the subvolumes
+    storageInfo = run("btrfs qgroup show /", shell=True).splitlines()[2:]
     snapperIDToSpaceTuple = {}  # maps a snapperID to a tuple of (dataSize, uniqueDataSize)
     btrfsIDToSpaceTuple = {}  # maps a btrfsID to a tuple of (dataSize, uniqueDataSize)
     for line in storageInfo:
-        data = [datum for datum in line.split(' ') if datum != '']  # parse the data points by splitting on ' ' and ignoring the blanks
+        # parse the data points by splitting on ' ' and ignoring the blanks
+        data = [datum for datum in line.split(' ') if datum != '']
         tuple = (data[1], data[2])  # create the spaceTuple
         btrfsID = int(data[0].split('/')[1])  # parse the btrfsID
         try:  # try because sometimes there will be a KeyError
@@ -139,9 +143,11 @@ def listSubvolumes():
         except KeyError as e:
             pass
         btrfsIDToSpaceTuple[btrfsID] = tuple  # add to the btrfsID dict
-    snapperList = run("snapper list", shell=True).splitlines()  # get data from snapper that we will then supplement
+    # get data from snapper that we will then supplement
+    snapperList = run("snapper list", shell=True).splitlines()
     table = []  # a list of lists that tabulate() will use
-    headers = [section for section in snapperList[0].replace('|', '').split(' ') if section != '']  # parse the headers
+    headers = [section for section in snapperList[0].replace('|', '').split(' ')
+               if section != '']  # parse the headers
     headers.extend(["Size", "Unique Size"])  # add the headers that we will use
     for line in snapperList[2:]:  # for line in list of data points
         lineArr = line.split(' | ')  # split on the ' | ' in order to get the data points
@@ -153,7 +159,8 @@ def listSubvolumes():
         lineArr.append(" ")  # for the userdata column
         lineArr.extend(list(spaceTuple))  # add the space data
         table.append(lineArr)  # append our line to the table
-    print tabulate(table, headers=headers, tablefmt="psql")  # print a table with the headers and in format of psql
+    # print a table with the headers and in format of psql
+    print tabulate(table, headers=headers, tablefmt="psql")
 
 
 def main():
@@ -168,8 +175,10 @@ def main():
                                "information on space usage. ")
 
     # create the parser
-    parser = argparse.ArgumentParser(description="snapperS: A variety of supplemental snapper subcommands",
-                                     formatter_class=RawTextHelpFormatter)  # so we can use \n and \t
+    parser = argparse.ArgumentParser(description=("snapperS: A variety of supplemental "
+                                                  "snapper subcommands"),
+                                     # so we can use \n and \t
+                                     formatter_class=RawTextHelpFormatter)
     parser.add_argument('-d',  # for if the user has changed the snapper mount point
                         '--directory',
                         help='Directory containing the snapshots',
@@ -186,7 +195,8 @@ def main():
                         version="%(prog)s " + __version__)
 
     subparsers = parser.add_subparsers(title='Subcommands',  # list of subcommands
-                                       description='\n'.join([subcommandsHelp[key] for key in subcommandsHelp]))
+                                       description='\n'.join([subcommandsHelp[key]
+                                                              for key in subcommandsHelp]))
 
     # rm subcommand
     parser_rm = subparsers.add_parser('rm',
