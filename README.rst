@@ -131,4 +131,7 @@ or
     cd snapperS
     python setup.py install
 
+Source
+-------
 
+Source is available on at github.com/ddworken/snapperS
