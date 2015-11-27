@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """This program is a set of supplemental commands to be used with snapper"""
 
-__version__ = '1.1.6'
+__version__ = '1.1.7'
 
 from argparse import RawTextHelpFormatter  # used so we can use \n in argparse descriptions
 import argparse  # used for argument parsing
@@ -125,9 +125,12 @@ def listSubvolumes():
     subvols = run("btrfs subvolume list /", shell=True).splitlines()[1:]  # get a list of all of
     btrfsIDToSnapperID = {}  # the subvolumes that we use to generate the dict to map between them
     for line in subvols:
-        btrfsID = int(line.split(' ')[1])  # parse the btrfsID
-        snapperID = int(line.split(' ')[-1].split('/')[1])  # parse the snapperID
-        btrfsIDToSnapperID[btrfsID] = snapperID  # put the information into the dict
+        try:
+            btrfsID = int(line.split(' ')[1])  # parse the btrfsID
+            snapperID = int(line.split(' ')[-1].split('/')[1])  # parse the snapperID
+            btrfsIDToSnapperID[btrfsID] = snapperID  # put the information into the dict
+        except IndexError:
+            pass
     # get the information about the size of the subvolumes
     storageInfo = run("btrfs qgroup show /", shell=True).splitlines()[2:]
     snapperIDToSpaceTuple = {}  # maps a snapperID to a tuple of (dataSize, uniqueDataSize)
