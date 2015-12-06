@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='snapperS',
-    version='1.1.7',
+    version='1.1.8',
     author='David Dworken',
     author_email='david@daviddworken.com',
     packages=['snapperS'],

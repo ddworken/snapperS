@@ -25,3 +25,4 @@ v1.1.4, 11/16/15 -- Refactored code and put everything in the same order.
 v1.1.5, 11/16/15 -- Increased pep8 strictness and fixed pep8 errors. 
 v1.1.6, 11/17/15 -- Added link to source. 
 v1.1.7, 11/27/15 -- Fixed a bug. 
+v1.1.8, 12/06/15 -- Added better error handling. 

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """This program is a set of supplemental commands to be used with snapper"""
 
-__version__ = '1.1.7'
+__version__ = '1.1.8'
 
 from argparse import RawTextHelpFormatter  # used so we can use \n in argparse descriptions
 import argparse  # used for argument parsing
@@ -129,7 +129,7 @@ def listSubvolumes():
             btrfsID = int(line.split(' ')[1])  # parse the btrfsID
             snapperID = int(line.split(' ')[-1].split('/')[1])  # parse the snapperID
             btrfsIDToSnapperID[btrfsID] = snapperID  # put the information into the dict
-        except IndexError:
+        except (ValueError, IndexError):
             pass
     # get the information about the size of the subvolumes
     storageInfo = run("btrfs qgroup show /", shell=True).splitlines()[2:]
